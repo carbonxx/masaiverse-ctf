@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- ==========================================
+      MASAIVERSE SECURE TERMINAL
+      WARNING: UNAUTHORIZED DOM INSPECTION DETECTED 
+     ========================================== -->
+<!-- Error 404: "Easy Mode" Not Found -->
+<!-- <div id="fake-flag">flag{nice_try_but_no_cigar}</div> -->
+<!-- Admin Note: Did someone leave the root password here? Oh wait, no. We aren't that careless. -->
+<script>
+    console.log("%c MASAI PROTOCOL // INTRUSION DETECTED", "font-family: monospace; font-size: 20px; font-weight: bold; color: #00f572; background: #0a0a0a; padding: 10px; border-left: 6px solid #00f572;");
+    console.log("%c [!] UNAUTHORIZED DEVTOOLS ACCESS LOGGED.", "font-family: monospace; font-size: 14px; color: #ff0055; padding-top: 5px;");
+    console.log("%c Did you really think it would be that easy, Agent? The shadows protect our secrets.", "font-family: monospace; font-size: 14px; color: #a1a1aa; font-style: italic; padding-top: 5px;");
+    console.log("%c Return to your terminal.", "font-family: monospace; font-size: 16px; color: #fff; font-weight: bold; background: #252526; padding: 5px; margin-top: 10px;");
+</script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.terminal/js/jquery.terminal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery.terminal/css/jquery.terminal.min.css"/>
+<title>MasaiVerse CTF</title>
+<style>
+    :root {
+       --size: 1.2;
+    }
+    body {
+        margin: 0;
+        background: black;
+    }
+    #editor-container {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 600px;
+        height: 400px;
+        background: #1e1e1e;
+        border: 2px solid rgb(0, 245, 114);
+        z-index: 1000;
+        flex-direction: column;
+        box-shadow: 0 0 20px rgba(0, 245, 114, 0.4);
+    }
+    #editor-header {
+        background: #333;
+        color: white;
+        padding: 10px;
+        font-family: monospace;
+        display: flex;
+        justify-content: space-between;
+    }
+    #editor-textarea {
+        flex-grow: 1;
+        background: #1e1e1e;
+        color: #d4d4d4;
+        font-family: monospace;
+        font-size: 14px;
+        border: none;
+        padding: 10px;
+        resize: none;
+        outline: none;
+    }
+    #editor-footer {
+        padding: 10px;
+        text-align: right;
+        background: #252526;
+    }
+    #editor-run {
+        background: rgb(0, 245, 114);
+        color: black;
+        border: none;
+        padding: 5px 15px;
+        font-family: monospace;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    #editor-run:hover {
+        background: rgb(0, 200, 100);
+    }
+    #css-hack-box {
+        display: none;
+        position: fixed;
+        top: 20%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: black;
+        border: 2px dashed rgb(0, 245, 114);
+        padding: 40px;
+        font-family: monospace;
+        font-size: 20px;
+        color: rgb(0, 245, 114);
+        z-index: 1005;
+        /* The player must remove opacity: 0 below in developer tools to see the flag */
+        opacity: 0;
+    }
+    #quit-btn {
+        position: fixed;
+        top: 10px;
+        right: 15px;
+        background: rgba(255,0,0,0.2);
+        color: red;
+        border: 1px solid red;
+        padding: 8px 16px;
+        font-family: monospace;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 2000;
+    }
+    #quit-btn:hover {
+        background: red;
+        color: white;
+    }
+</style>
+</head>
+<body>
+    <button id="quit-btn" onclick="triggerQuit()">QUIT SESSION</button>
+
+    <template id="greetings" style="color:rgb(0, 245, 114)">
+  __  __                 ___     __                    ____ _____ _____ 
+ |  \/  | __ _ ___  __ _(_) \   / /__ _ __ ___  ___   / ___|_   _|  ___|
+ | |\/| |/ _` / __|/ _` | |\ \ / / _ \ '__/ __|/ _ \ | |     | | | |_   
+ | |  | | (_| \__ \ (_| | | \ V /  __/ |  \__ \  __/ | |___  | | |  _|  
+ |_|  |_|\__,_|___/\__,_|_|  \_/ \___|_|  |___/\___|  \____| |_| |_|    
+    </template>
+
+    <div id="editor-container">
+        <div id="editor-header">
+            <span>puzzle.js</span>
+            <span style="cursor:pointer; color:red; font-weight:bold" onclick="$('#editor-container').css('display', 'none')">X</span>
+        </div>
+        <textarea id="editor-textarea">
+// STAGE 2: Code Puzzle
+// Fix the function below to return the reverse of the input string.
+// (e.g. reverseString('hack') should return 'kcah')
+
+function reverseString(str) {
+    // Write your code here
+    
+}
+        </textarea>
+        <div id="editor-footer">
+            <button id="editor-run">Run Code</button>
+        </div>
+    </div>
+
+    <!-- STAGE 4 Hidden Box -->
+    <div id="css-hack-box">
+        Nice CSS hacking skills! Your flag is: css_hacker
+    </div>
+        
+    <script>
+        let currentStage = 0; 
+        let username = "";
+        let startTime = 0;
+        let endTime = 0;
+        let hintCount = 0;
+
+        let globalTerm = null;
+
+        function triggerQuit() {
+            if (globalTerm) {
+                globalTerm.exec("quit");
+            }
+        }
+
+        async function checkFlagApi(flag) {
+            try {
+                const response = await fetch('/checkFlag', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ flag: flag })
+                });
+                return await response.json();
+            } catch (e) {
+                return { success: false };
+            }
+        }
+
+        let termObj = {
+            register: async function(name) {
+                if (currentStage !== 0) {
+                    this.echo("[[gb;red;black]Already registered. Use the QUIT SESSION button to start over.]");
+                    return;
+                }
+                if (!name) {
+                    this.echo("[[gb;red;black]Please provide a name: register <Name>]");
+                    return;
+                }
+                username = name;
+                startTime = Date.now();
+                currentStage = 1;
+                hintCount = 0;
+                await this.echo(`[[gb;green;black]Welcome, ${username}! Timer has started.]`);
+                await this.echo("Type `help` to see your first challenge.");
+            },
+            help: async function() {
+                if (currentStage === 0) {
+                    await this.echo("Welcome. First, type `register <YourName>` to begin the CTF and start the timer.", { typing: true, delay: 10 });
+                } else if (currentStage === 1) {
+                    await this.echo("STAGE 1: CRYPTO CHALLENGE", { typing: true, delay: 10 });
+                    await this.echo("Decipher this message (ROT13): pelfbgv_znfgre", { typing: true, delay: 10 });
+                    await this.echo("Type `submit <flag>` to answer. Or type `hint` if stuck.", { typing: true, delay: 10 });
+                } else if (currentStage === 2) {
+                    await this.echo("STAGE 2: CODING PUZZLE", { typing: true, delay: 10 });
+                    await this.echo("Type `open_editor` to access the broken code. Fix it to get the flag.", { typing: true, delay: 10 });
+                    await this.echo("Type `submit <flag>` when you find it. Or type `hint`.", { typing: true, delay: 10 });
+                } else if (currentStage === 3) {
+                    await this.echo("STAGE 3: WEB EXPLOITATION", { typing: true, delay: 10 });
+                    await this.echo("A rogue agent left important data on an unsecured endpoint attached to this domain: `/classified-intel`", { typing: true, delay: 10 });
+                    await this.echo("Recover the missing token over there. Wait, is it forbidden?", { typing: true, delay: 10 });
+                    await this.echo("Type `submit <flag>`. Or type `hint`.", { typing: true, delay: 10 });
+                } else if (currentStage === 4) {
+                    await this.echo("STAGE 4: CSS ILLUSION", { typing: true, delay: 10 });
+                    await this.echo("We found a secure lockbox mechanism on this page, but the admin hid it with a CSS property.", { typing: true, delay: 10 });
+                    await this.echo("Type `open_lock` to summon it to the DOM. Then, you'll need to Inspect the Element and hack the CSS to visually reveal the flag.", { typing: true, delay: 10 });
+                    await this.echo("Type `submit <flag>`. Or type `hint`.", { typing: true, delay: 10 });
+                } else if (currentStage === 5) {
+                    await this.echo("STAGE 5: API MANIPULATION", { typing: true, delay: 10 });
+                    await this.echo("To get the final piece, you must interact with the `/ping` endpoint directly.", { typing: true, delay: 10 });
+                    await this.echo("It requires a secret `?token=` query parameter. Remember the intel you gathered from Stage 3?", { typing: true, delay: 10 });
+                    await this.echo("Type `submit <flag>`. Or type `hint`.", { typing: true, delay: 10 });
+                } else if (currentStage === 6) {
+                     await this.echo("You have completed the CTF!");
+                }
+            },
+            hint: async function() {
+                if (currentStage === 0) {
+                    this.echo("[[gb;yellow;black]Hint: Type `register <YourName>` to literally start playing.]");
+                    return;
+                }
+                
+                hintCount++;
+                startTime -= 5000; // 5 second penalty
+                let msg = "";
+                if (currentStage === 1) {
+                    msg = hintCount === 1 ? "Hint 1: ROT13 is Caesar's favorite rotation cipher (+13 alphabet)." : "Hint 2: Google 'ROT13 decoder' and paste the string in. The output is your flag.";
+                } else if (currentStage === 2) {
+                    msg = hintCount === 1 ? "Hint 1: The goal is to reverse the input. Use string methods." : "Hint 2: Try `return str.split('').reverse().join('');`";
+                } else if (currentStage === 3) {
+                    msg = hintCount === 1 ? "Hint 1: Go to /classified-intel in your browser. It looks forbidden, but the truth is under the surface." : "Hint 2: Read the Source Code of the page (Ctrl+U) or look out for the custom `X-Secret-Flag` Network Header (F12).";
+                } else if (currentStage === 4) {
+                    msg = hintCount === 1 ? "Hint 1: Type open_lock first. Something appeared but you can't see it because opacity is 0." : "Hint 2: Open developer tools (F12), click Elements, find <div id='css-hack-box'> and uncheck 'opacity: 0' in the Styles tab.";
+                } else if (currentStage === 5) {
+                    msg = hintCount === 1 ? "Hint 1: There was an 'Admin note' hidden in the source code of the Stage 3 /classified-intel page." : "Hint 2: Go to /ping?token=masai2026 to retrieve the JSON response flag.";
+                } else {
+                    msg = "No more hints available.";
+                }
+                this.echo(`[[b;yellow;black]${msg}]`);
+                this.echo("[[gb;red;black][!] PENALTY APPLIED: +5 Seconds added to your timer.]");
+            },
+            instructions: async function() {
+                this.echo("\n[[gb;cyan;black]--- MASAIVERSE CTF INSTRUCTIONS ---]");
+                this.echo("1. You are tasked with solving 5 consecutive security stages.");
+                this.echo("2. In each stage, you must locate a secret flag and submit it using `submit <flag>`.");
+                this.echo("3. You are being timed! The clock starts ticking the moment you register.");
+                this.echo("4. If you are stuck, you can type `hint`, but beware: [[gb;red;black]every hint adds a 5-second penalty] to your total time.");
+                this.echo("5. If you want to forfeit, type `quit` or press the QUIT button to wipe your session.");
+            },
+            quit: async function() {
+                if (currentStage === 0) {
+                    this.echo("[[gb;red;black]You haven't even started yet!]");
+                    return;
+                }
+                this.echo("[[gb;red;black]\n[!] Session Terminated. Progress wiped.]");
+                currentStage = 0;
+                username = "";
+                startTime = 0;
+                endTime = 0;
+                hintCount = 0;
+                $('#css-hack-box').css('display', 'none');
+                $('#editor-container').css('display', 'none');
+            },
+            open_editor: async function() {
+                if (currentStage !== 2) {
+                    this.echo("[[gb;red;black]You don't need the editor right now.]");
+                    return;
+                }
+                $('#editor-container').css('display', 'flex');
+            },
+            open_lock: async function() {
+                if (currentStage !== 4) {
+                    this.echo("[[gb;red;black]There is no lock to open right now.]");
+                    return;
+                }
+                $('#css-hack-box').css('display', 'block');
+                this.echo("[[gb;green;black]The lockbox was summoned to the DOM... but it remains invisible! Inspect it to read the flag.]");
+            },
+            submit: async function(...args) {
+                let answer = args.join(" ");
+                if (!answer) {
+                     this.echo("[[gb;red;black]Usage: submit <answer>]");
+                     return;
+                }
+                
+                let requestFlag = answer;
+                
+                if (currentStage === 0) {
+                    this.echo("[[gb;red;black]Register first using `register <Name>`]");
+                    return;
+                }
+
+                if (currentStage === 1) {
+                    const res = await checkFlagApi(requestFlag);
+                    if (res.success && res.message === 'FLAG1') {
+                        await this.echo("[[gb;green;black]\nCorrect!]");
+                        currentStage = 2; hintCount = 0;
+                        await this.echo("Moving to Stage 2... Type `help` for instructions.");
+                    } else {
+                        await this.echo("[[gb;red;black]Incorrect flag. Try again.]");
+                    }
+                } else if (currentStage === 2) {
+                     const res = await checkFlagApi(requestFlag);
+                     if (res.success && res.message === 'FLAG2') {
+                        await this.echo("[[gb;green;black]\nCorrect!]");
+                        currentStage = 3; hintCount = 0;
+                        await this.echo("Moving to Stage 3... Type `help` for instructions.");
+                     } else {
+                         await this.echo("[[gb;red;black]Incorrect flag.]");
+                     }
+                } else if (currentStage === 3) {
+                     const res = await checkFlagApi(requestFlag);
+                     if (res.success && res.message === 'FLAG3') {
+                         await this.echo("[[gb;green;black]\nCorrect! Payload intercepted.]");
+                         currentStage = 4; hintCount = 0;
+                         await this.echo("Moving to Stage 4... Type `help` for instructions.");
+                     } else {
+                         await this.echo("[[gb;red;black]Incorrect.]");
+                     }
+                } else if (currentStage === 4) {
+                     const res = await checkFlagApi(requestFlag);
+                     if (res.success && res.message === 'FLAG4') {
+                         await this.echo("[[gb;green;black]\nCorrect! CSS Hack successful.]");
+                         currentStage = 5; hintCount = 0;
+                         $('#css-hack-box').css('display', 'none');
+                         await this.echo("Moving to Stage 5... Type `help` for instructions.");
+                     } else {
+                         await this.echo("[[gb;red;black]Incorrect.]");
+                     }
+                } else if (currentStage === 5) {
+                     const res = await checkFlagApi(requestFlag);
+                     if (res.success && res.message === 'FLAG5') {
+                         await this.echo("[[gb;green;black]\nCorrect! You have retrieved the final token.]");
+                         currentStage = 6;
+                         endTime = Date.now();
+                         completeCTF(this);
+                     } else {
+                         await this.echo("[[gb;red;black]Incorrect.]");
+                     }
+                } else {
+                    this.echo("[[gb;green;black]You've already finished!]");
+                }
+            }
+        };
+
+        $('body').terminal(termObj, {
+            checkArity: false,
+            greetings: "[[gib;green;black]" + document.getElementById('greetings').innerHTML + "]\nWelcome to the MasaiVerse CTF!\n\nType `help` to begin.",
+            onInit: function(term) {
+                globalTerm = term;
+            }
+        });
+
+        function completeCTF(term) {
+            let durationMs = endTime - startTime;
+            let mins = Math.floor(durationMs / 60000);
+            let secs = Math.floor((durationMs % 60000) / 1000);
+            let timeFormatted = `${mins}m ${secs}s`;
+            
+            term.echo(`\n[[gb;gold;black]=========================================]`);
+            term.echo(`[[b;yellow;black]         SERVER COMPROMISED]`);
+            term.echo(`[[b;yellow;black]          MISSION SUCCESS]`);
+            term.echo(`[[gb;gold;black]=========================================]`);
+            term.echo(`Operator: ${username}`);
+            term.echo(`Time Taken: ${timeFormatted}`);
+            term.echo(`Redirecting to Leaderboard...`);
+            
+            // Send to robust API tracker
+            fetch('/api/leaderboard', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: username, timeMs: durationMs, timeFormatted: timeFormatted })
+            }).then(() => {
+                setTimeout(() => {
+                    window.location.href = 'leaderboard.html';
+                }, 2000);
+            }).catch(() => {
+                // fallback
+                setTimeout(() => {
+                    window.location.href = 'leaderboard.html';
+                }, 2000);
+            });
+        }
+
+        $('#editor-run').click(function() {
+            let codeStr = $('#editor-textarea').val();
+            try {
+                let tester = new Function(`
+                    ${codeStr};
+                    if (typeof reverseString !== 'function') return false;
+                    return reverseString('hello') === 'olleh' && reverseString('hack') === 'kcah';
+                `);
+                let result = tester();
+                if (result) {
+                    alert('Success! The output is correct. Your flag for Stage 2 is: js_ninja');
+                    $('#editor-container').css('display', 'none');
+                } else {
+                    alert('Incorrect output. Make sure the logic is correct.');
+                }
+            } catch(e) {
+                alert("Syntax Error: " + e.message);
+            }
+        });
+    </script>
+</body>
+</html>
