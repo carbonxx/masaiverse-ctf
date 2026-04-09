@@ -1,15 +1,9 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "app.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "app.js"
-    }
+  "rewrites": [
+    { "source": "/checkFlag", "destination": "/api/index.js" },
+    { "source": "/classified-intel", "destination": "/api/index.js" },
+    { "source": "/ping", "destination": "/api/index.js" },
+    { "source": "/api/leaderboard", "destination": "/api/index.js" },
+    { "source": "/api/leaderboard/reset", "destination": "/api/index.js" }
   ]
 }

@@ -92,28 +92,9 @@
         /* The player must remove opacity: 0 below in developer tools to see the flag */
         opacity: 0;
     }
-    #quit-btn {
-        position: fixed;
-        top: 10px;
-        right: 15px;
-        background: rgba(255,0,0,0.2);
-        color: red;
-        border: 1px solid red;
-        padding: 8px 16px;
-        font-family: monospace;
-        font-size: 14px;
-        font-weight: bold;
-        cursor: pointer;
-        z-index: 2000;
-    }
-    #quit-btn:hover {
-        background: red;
-        color: white;
-    }
 </style>
 </head>
 <body>
-    <button id="quit-btn" onclick="triggerQuit()">QUIT SESSION</button>
 
     <template id="greetings" style="color:rgb(0, 245, 114)">
   __  __                 ___     __                    ____ _____ _____ 
@@ -157,12 +138,6 @@ function reverseString(str) {
 
         let globalTerm = null;
 
-        function triggerQuit() {
-            if (globalTerm) {
-                globalTerm.exec("quit");
-            }
-        }
-
         async function checkFlagApi(flag) {
             try {
                 const response = await fetch('/checkFlag', {
@@ -198,7 +173,7 @@ function reverseString(str) {
                     await this.echo("Welcome. First, type `register <YourName>` to begin the CTF and start the timer.", { typing: true, delay: 10 });
                 } else if (currentStage === 1) {
                     await this.echo("STAGE 1: CRYPTO CHALLENGE", { typing: true, delay: 10 });
-                    await this.echo("Decipher this message (ROT13): pelfbgv_znfgre", { typing: true, delay: 10 });
+                    await this.echo("Decipher this message (ROT13): pelcgb_znfgre", { typing: true, delay: 10 });
                     await this.echo("Type `submit <flag>` to answer. Or type `hint` if stuck.", { typing: true, delay: 10 });
                 } else if (currentStage === 2) {
                     await this.echo("STAGE 2: CODING PUZZLE", { typing: true, delay: 10 });
@@ -254,21 +229,6 @@ function reverseString(str) {
                 this.echo("2. In each stage, you must locate a secret flag and submit it using `submit <flag>`.");
                 this.echo("3. You are being timed! The clock starts ticking the moment you register.");
                 this.echo("4. If you are stuck, you can type `hint`, but beware: [[gb;red;black]every hint adds a 5-second penalty] to your total time.");
-                this.echo("5. If you want to forfeit, type `quit` or press the QUIT button to wipe your session.");
-            },
-            quit: async function() {
-                if (currentStage === 0) {
-                    this.echo("[[gb;red;black]You haven't even started yet!]");
-                    return;
-                }
-                this.echo("[[gb;red;black]\n[!] Session Terminated. Progress wiped.]");
-                currentStage = 0;
-                username = "";
-                startTime = 0;
-                endTime = 0;
-                hintCount = 0;
-                $('#css-hack-box').css('display', 'none');
-                $('#editor-container').css('display', 'none');
             },
             open_editor: async function() {
                 if (currentStage !== 2) {
@@ -404,10 +364,10 @@ function reverseString(str) {
                     alert('Success! The output is correct. Your flag for Stage 2 is: js_ninja');
                     $('#editor-container').css('display', 'none');
                 } else {
-                    alert('Incorrect output. Make sure the logic is correct.');
+                    alert('Incorrect output. Make sure your function actually returns the reversed string.');
                 }
             } catch(e) {
-                alert("Syntax Error: " + e.message);
+                alert("Error executing your code: " + e.message + "\n(Hint: JavaScript strings don't have a .reverse() method, but Arrays do!)");
             }
         });
     </script>

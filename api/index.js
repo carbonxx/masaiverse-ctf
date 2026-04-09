@@ -2,6 +2,7 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const { kv } = require('@vercel/kv');
 
 const app = express();
 const port = 3000;
@@ -73,19 +74,45 @@ app.get('/ping', (req, res) => {
     }
 });
 
-let gLeaderboard = [];
-
-app.get('/api/leaderboard', (req, res) => {
-    res.json(gLeaderboard);
+app.get('/api/leaderboard', async (req, res) => {
+    try {
+        const leaderboard = await kv.get('masaiverse_leaderboard') || [];
+        res.json(leaderboard);
+    } catch (error) {
+        console.error("KV GET Error:", error);
+        res.status(500).json([]);
+    }
 });
 
-app.post('/api/leaderboard', (req, res) => {
-    const { name, timeMs, timeFormatted } = req.body;
-    if (name && timeMs !== undefined) {
-        gLeaderboard.push({ name, timeMs, timeFormatted });
-        gLeaderboard.sort((a,b) => a.timeMs - b.timeMs);
+app.post('/api/leaderboard', async (req, res) => {
+    try {
+        const { name, timeMs, timeFormatted } = req.body;
+        if (name && timeMs !== undefined) {
+            let leaderboard = await kv.get('masaiverse_leaderboard') || [];
+            leaderboard.push({ name, timeMs, timeFormatted });
+            leaderboard.sort((a,b) => a.timeMs - b.timeMs);
+            await kv.set('masaiverse_leaderboard', leaderboard);
+        }
+        res.json({ success: true });
+    } catch (error) {
+        console.error("KV POST Error:", error);
+        res.status(500).json({ success: false, error: "Internal Server Error" });
     }
-    res.json({ success: true });
+});
+
+app.get('/api/leaderboard/reset', async (req, res) => {
+    const adminToken = process.env.ADMIN_TOKEN || 'masai2026-admin_reset';
+    if (req.query.token === adminToken) {
+        try {
+            await kv.set('masaiverse_leaderboard', []);
+            res.json({ success: true, message: 'Leaderboard manually reset.' });
+        } catch (error) {
+            console.error("KV Reset Error:", error);
+            res.status(500).json({ success: false, message: 'Error resetting leaderboard.' });
+        }
+    } else {
+        res.status(403).json({ success: false, message: 'Invalid admin token.' });
+    }
 });
 
 if (require.main === module) {
