@@ -2,7 +2,8 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const { kv } = require('@vercel/kv');
+const Redis = require('ioredis');
+const redis = new Redis(process.env.REDIS_URL);
 
 const app = express();
 const port = 3000;
@@ -76,7 +77,8 @@ app.get('/ping', (req, res) => {
 
 app.get('/api/leaderboard', async (req, res) => {
     try {
-        const leaderboard = await kv.get('masaiverse_leaderboard') || [];
+        const data = await redis.get('masaiverse_leaderboard');
+        const leaderboard = data ? JSON.parse(data) : [];
         res.json(leaderboard);
     } catch (error) {
         console.error("KV GET Error:", error);
@@ -88,10 +90,11 @@ app.post('/api/leaderboard', async (req, res) => {
     try {
         const { name, timeMs, timeFormatted } = req.body;
         if (name && timeMs !== undefined) {
-            let leaderboard = await kv.get('masaiverse_leaderboard') || [];
+            const data = await redis.get('masaiverse_leaderboard');
+            let leaderboard = data ? JSON.parse(data) : [];
             leaderboard.push({ name, timeMs, timeFormatted });
             leaderboard.sort((a,b) => a.timeMs - b.timeMs);
-            await kv.set('masaiverse_leaderboard', leaderboard);
+            await redis.set('masaiverse_leaderboard', JSON.stringify(leaderboard));
         }
         res.json({ success: true });
     } catch (error) {
@@ -104,7 +107,7 @@ app.get('/api/leaderboard/reset', async (req, res) => {
     const adminToken = process.env.ADMIN_TOKEN || 'masai2026-admin_reset';
     if (req.query.token === adminToken) {
         try {
-            await kv.set('masaiverse_leaderboard', []);
+            await redis.set('masaiverse_leaderboard', JSON.stringify([]));
             res.json({ success: true, message: 'Leaderboard manually reset.' });
         } catch (error) {
             console.error("KV Reset Error:", error);
